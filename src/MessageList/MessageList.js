@@ -10,8 +10,8 @@ import Message from './Message';
   
   const MessageList = ({ messages, selectCallack }) => {
     const createEntries = () => messages.map(message => <Message key={message.id} message={message} /*selectCallack={selectCallack}*/ />);
-    return <div>
-      <table>
+    return <div className="table-responsive">
+      <table className="table">
         <tbody>
           {createEntries()}
         </tbody>

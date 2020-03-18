@@ -1,13 +1,13 @@
 import setMessages from './setMessagesAction';
 import setBulkSelectStatus from './setBulkSelectStatusAction';
 
-const setMessageSelected = (messages, selectedMessage, bool) => {
+const setMessageSelected = (messages, selectedMessage) => {
     
     return dispatch => {
 
     const result = messages.map(message => {
         if (selectedMessage === message) {
-          message.selected = bool;
+          message.selected = !message.selected;
         }
         return message;
       });
