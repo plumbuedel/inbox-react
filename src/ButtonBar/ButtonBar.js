@@ -1,29 +1,34 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { faSquare, faCheckSquare } from '@fortawesome/free-regular-svg-icons'
 import { faTrashAlt, faMinusSquare } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { connect } from 'react-redux';
+import updateBulkSelect from '../actions/updateBulkSelectAction';
+import deleteMessages from '../actions/deleteMessageAction';
+import setReadMarkOn from '../actions/setReadMarkAction';
+import changeLabelsOn from '../actions/changeLabelsAction';
 
 
 const labels = ['dev', 'personal', 'gschool'];
 
-const ButtonBar = ({ messages, checkCallback, deleteCallback, readmarkCallback, setLabelCallback }) => {
+   
+      const ButtonBar = ({ messages, bulkSelectStatus, updateSelection, deleteMsgs, setReadMarks, changeLabels }) => {
 
     const checkForSelectedMessages = () => {
       const result = messages.reduce((acc, val) => {
-        if (val.checked) {
+        if (val.selected) {
           acc += 1;
         }
         return acc;
       }, 0);
       return result;
     }
-  
-    const [bulkCheck, setBulkCheck] = useState(false);
-    const updateBulkCheck = () => {
-      setBulkCheck(!bulkCheck);
-      checkCallback(!bulkCheck);
+
+    const checkForReadMessages = () => {
+      return messages.reduce((acc, val) => !val.read ? acc = acc + 1 : acc, 0);
     }
   
+   
     const getBulkSelectIcon = () => {
       const value = checkForSelectedMessages();
       if (value === 0) {
@@ -42,29 +47,26 @@ const ButtonBar = ({ messages, checkCallback, deleteCallback, readmarkCallback, 
       return result;
     }
   
-    const setLabel = (action, value) => {
-      setLabelCallback(action, value);
-    }
-  
+   
   
   
     return (
       <div>
         <button
-          onClick={() => updateBulkCheck()}>
+          onClick={() => updateSelection(messages, bulkSelectStatus)}>
           <FontAwesomeIcon icon={getBulkSelectIcon()} />
         </button>
-        <button onClick={() => readmarkCallback(true)}
+        <button onClick={() => setReadMarks(messages, true)}
           disabled={!checkForSelectedMessages()}>Mark as Read
         </button>
-        <button onClick={() => readmarkCallback(false)}
+        <button onClick={() => setReadMarks(messages, false)}
           disabled={!checkForSelectedMessages()}>Mark as Unread
         </button>
         <select
           defaultValue={''}
           disabled={!checkForSelectedMessages()}
           onChange={(event) => {
-            setLabel('add', event.target.value);
+            changeLabels(messages,  event.target.value, 'add');
             event.target.value = '';
           }}>
           {getOptions('Apply Label')}
@@ -73,14 +75,35 @@ const ButtonBar = ({ messages, checkCallback, deleteCallback, readmarkCallback, 
           defaultValue=''
           disabled={!checkForSelectedMessages()}
           onChange={(event) => {
-            setLabel('remove', event.target.value);
+            changeLabels(messages, event.target.value, 'remove');
             event.target.value = '';
           }}>
           {getOptions('Remove Label')}
         </select>
-        <button onClick={() => deleteCallback()}><FontAwesomeIcon icon={faTrashAlt} /></button>
+        <button onClick={() => deleteMsgs(messages)}><FontAwesomeIcon icon={faTrashAlt} /></button>
+        <div className="float-right">
+          <button>{checkForReadMessages()}</button>
+          <span className="ml-2">unread messages</span>
+        </div>
       </div>
     );
   }
 
-  export default ButtonBar;
+  const mapStateToProps = state => {
+    return {
+      messages: state.messages,
+      bulkSelectStatus: state.bulkSelectStatus
+    };
+  }
+
+
+  const mapDispatchToProps = dispatch => {
+    return {
+      updateSelection : (messages, bool) => dispatch(updateBulkSelect(messages, bool)),
+      deleteMsgs: (messages) => dispatch(deleteMessages(messages)),
+      setReadMarks: (messages, bool) => dispatch(setReadMarkOn(messages, bool)),
+      changeLabels: (messages, label, action) => dispatch(changeLabelsOn(messages, label, action))
+    };
+  }
+
+  export default connect(mapStateToProps, mapDispatchToProps)(ButtonBar);
